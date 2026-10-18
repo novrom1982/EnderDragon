@@ -60,7 +60,6 @@ public class NMSUtil {
                     try {
                         this.cpdToEi = NMSItemStackClass.getMethod("a", NBTTagCompoundClass);
                     } catch (Exception e) {
-                        // На 26.3 метод "a" мог изменить сигнатуру или имя, ищем подходящий статический метод
                         for (Method m : NMSItemStackClass.getMethods()) {
                             if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == NBTTagCompoundClass && m.getReturnType() == NMSItemStackClass) {
                                 this.cpdToEi = m;
@@ -71,15 +70,18 @@ public class NMSUtil {
                 }
             }
 
-            // Фикс для MojangsonParser (строка 105) под версию 26.3+
+            // Фикс парсера MojangsonParser для работы с NBT-логикой предметов на 26.3+
             if(Version.mcMainVersion<=16) this.MojangsonParserClass = Class.forName("net.minecraft.server."+version+".MojangsonParser");
             else if (Version.mcMainVersion < 26) this.MojangsonParserClass = Class.forName("net.minecraft.nbt.MojangsonParser");
             else {
-                // Заполняем актуальный класс парсера для 26.3+
                 try {
                     this.MojangsonParserClass = Class.forName("net.minecraft.nbt.MojangsonParser");
                 } catch (ClassNotFoundException e) {
-                    this.MojangsonParserClass = Class.forName("net.minecraft.nbt.CompoundTag"); // крайний случай
+                    try {
+                        this.MojangsonParserClass = Class.forName("net.minecraft.nbt.CompoundTag");
+                    } catch (ClassNotFoundException ex) {
+                        this.MojangsonParserClass = null;
+                    }
                 }
             }
             
@@ -87,7 +89,6 @@ public class NMSUtil {
                 try {
                     this.stringToCPD = MojangsonParserClass.getMethod(getMethodName(ReflectiveMethod.MojangsonParser_parse), String.class);
                 } catch (Exception e) {
-                    // Фолбэк для методов парсинга строки в NBT
                     for (Method m : MojangsonParserClass.getMethods()) {
                         if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == String.class && m.getReturnType().getName().contains("Compound")) {
                             this.stringToCPD = m;
