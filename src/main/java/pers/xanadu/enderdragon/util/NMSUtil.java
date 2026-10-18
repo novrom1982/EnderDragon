@@ -155,7 +155,7 @@ public class NMSUtil {
 
                 this.PDCtoCPD.setAccessible(true);
 
-                if (!Version.isNBT_UPDATE()) {
+                if (CraftPersistentDataContainerClass != null) {
                     this.PersistentDataContainer_putAll =
                             CraftPersistentDataContainerClass
                                     .getDeclaredMethod(
