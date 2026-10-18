@@ -58,7 +58,7 @@ public class PlayerListener implements Listener {
             int amount = item.getAmount();
             e.getItem().setAmount(amount-1);
         }
-        EnderCrystal crystal = (EnderCrystal) world.spawnEntity(cen, DragonManager.getENDER_CRYSTAL());
+        EnderCrystal crystal = (EnderCrystal) world.spawnEntity(cen, org.bukkit.entity.EntityType.END_CRYSTAL);
         crystal.setShowingBottom(false);
     }
 
