@@ -95,7 +95,7 @@ public class ItemManager {
         return new Reward(item,new Chance(d0, str));
     }
     public static ItemStack readFromAdvData(ConfigurationSection section, String path){
-        if (Version.isNBT_UPDATE()){
+        if (true){
             throw new UnsupportedOperationException(
                     "I'm sorry that data_type 'nbt' and 'advanced' have been temporarily disabled since 1.20.5.\n"+
                     "You can migrate configurations through '/ed migrate' in EnderDragon v2.5.1.\n"+
@@ -222,7 +222,7 @@ public class ItemManager {
         return item;
     }
     public static ItemStack readFromNBT(ConfigurationSection section, String path){
-        if (Version.isNBT_UPDATE()){
+        if (true){
             throw new UnsupportedOperationException(
                     "I'm sorry that data_type 'nbt' and 'advanced' have been temporarily disabled since 1.20.5.\n"+
                     "You can migrate configurations through '/ed migrate' in EnderDragon v2.5.1.\n"+
