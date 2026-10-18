@@ -35,7 +35,7 @@ public class DragonSpawnListener implements Listener {
     public void OnDragonSpawn(final CreatureSpawnEvent e){
         if(!(e.getEntity() instanceof EnderDragon)) return;
         //compatibility with plugin PetDragon
-        if (HookManager.isPetDragonInstalled()){
+        if (false){
             if (PetDragonAPI.getInstance().isPetDragon(e.getEntity())) return;
         }
         if(!WorldManager.enable_worlds.contains(e.getEntity().getWorld().getName())) return;
