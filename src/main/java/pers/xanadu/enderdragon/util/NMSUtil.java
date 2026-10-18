@@ -136,11 +136,25 @@ public class NMSUtil {
             }
 
             if (this.MojangsonParserClass != null) {
-                this.stringToCPD = MojangsonParserClass.getMethod(
-                        getMethodName(ReflectiveMethod.MojangsonParser_parse),
-                        String.class
-                );
-                this.stringToCPD.setAccessible(true);
+                try {
+                    this.stringToCPD = MojangsonParserClass.getMethod(
+                            getMethodName(ReflectiveMethod.MojangsonParser_parse),
+                            String.class
+                    );
+                } catch (NoSuchMethodException exception) {
+                    // Фолбэк для версии 26.3+: ищем метод, принимающий String и возвращающий CompoundTag
+                    for (Method method : MojangsonParserClass.getMethods()) {
+                        if (method.getParameterCount() == 1
+                                && method.getParameterTypes()[0] == String.class
+                                && method.getReturnType().getName().contains("Compound")) {
+                            this.stringToCPD = method;
+                            break;
+                        }
+                    }
+                }
+                if (this.stringToCPD != null) {
+                    this.stringToCPD.setAccessible(true);
+                }
             }
 
             if (Version.mcMainVersion >= 14) {
