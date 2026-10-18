@@ -56,51 +56,54 @@ public class NMSUtil {
             this.WorldClass = this.getNMSWord.getReturnType().getSuperclass();
             this.world_c_environment = CraftWorldClass.getDeclaredField("environment");
             this.world_c_environment.setAccessible(true);
-            if(Version.mcMainVersion>=12 && Version.mcMainVersion<16){
-                this.WorldProviderClass = Class.forName("net.minecraft.server."+version+".WorldProvider");
-                //this.WorldProviderTheEndClass = Class.forName("net.minecraft.server."+version+".WorldProviderTheEnd");
-            }
-            this.CraftItemStackClass = ClassResolver.obc("inventory.CraftItemStack");
-            this.CraftMetaItemClass = ClassResolver.obc("inventory.CraftMetaItem");
-            this.unhandledTags = CraftMetaItemClass.getDeclaredField("unhandledTags");
-            unhandledTags.setAccessible(true);
-            this.NMSItemStackClass = CraftItemStackClass.getDeclaredField("handle").getType();
-            this.CraftEntityClass = ClassResolver.obc("entity.CraftEntity");
-            init_NBTTagCompoundClass();
-            init_NBTBaseClass();
-            if (!Version.isNBT_UPDATE()){
-                init_NBTTagCompound_map();
-                this.NBTTagCompound_set = NBTTagCompoundClass.getMethod(getMethodName(ReflectiveMethod.NBTTagCompound_set),String.class,NBTBaseClass);
-            }
-            this.asNMSCopy = CraftItemStackClass.getMethod("asNMSCopy",ItemStack.class);
-            this.asBukkitCopy = CraftItemStackClass.getMethod("asBukkitCopy",NMSItemStackClass);
-            this.asCraftCopy = CraftItemStackClass.getMethod("asCraftCopy",ItemStack.class);
-
-            if (!Version.isNBT_UPDATE()){
-                this.NMSItemStack_save = NMSItemStackClass.getMethod(getMethodName(ReflectiveMethod.NMSItemStack_save),NBTTagCompoundClass);
-                if(Version.mcMainVersion>=13) this.cpdToEi = NMSItemStackClass.getMethod("a",NBTTagCompoundClass);
+            if(Version.mcMainVersion>=12 && Version.mcMainVersion=13) {
+                    try {
+                        this.cpdToEi = NMSItemStackClass.getMethod("a", NBTTagCompoundClass);
+                    } catch (Exception e) {
+                        // На 26.3 метод "a" мог изменить сигнатуру или имя, ищем подходящий статический метод
+                        for (Method m : NMSItemStackClass.getMethods()) {
+                            if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == NBTTagCompoundClass && m.getReturnType() == NMSItemStackClass) {
+                                this.cpdToEi = m;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
 
-
+            // Фикс для MojangsonParser (строка 105) под версию 26.3+
             if(Version.mcMainVersion<=16) this.MojangsonParserClass = Class.forName("net.minecraft.server."+version+".MojangsonParser");
             else if (Version.mcMainVersion < 26) this.MojangsonParserClass = Class.forName("net.minecraft.nbt.MojangsonParser");
             else {
-                // TODO: 2026/5/3 16:21
-                this.MojangsonParserClass = null;
+                // Заполняем актуальный класс парсера для 26.3+
+                try {
+                    this.MojangsonParserClass = Class.forName("net.minecraft.nbt.MojangsonParser");
+                } catch (ClassNotFoundException e) {
+                    this.MojangsonParserClass = Class.forName("net.minecraft.nbt.CompoundTag"); // крайний случай
+                }
             }
+            
             if (this.MojangsonParserClass != null) {
-                this.stringToCPD = MojangsonParserClass.getMethod(getMethodName(ReflectiveMethod.MojangsonParser_parse),String.class);
+                try {
+                    this.stringToCPD = MojangsonParserClass.getMethod(getMethodName(ReflectiveMethod.MojangsonParser_parse), String.class);
+                } catch (Exception e) {
+                    // Фолбэк для методов парсинга строки в NBT
+                    for (Method m : MojangsonParserClass.getMethods()) {
+                        if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == String.class && m.getReturnType().getName().contains("Compound")) {
+                            this.stringToCPD = m;
+                            break;
+                        }
+                    }
+                }
             }
 
             if(Version.mcMainVersion>=14){
                 this.CraftPersistentDataContainerClass = ClassResolver.obc("persistence.CraftPersistentDataContainer");
                 this.PDCtoCPD = CraftPersistentDataContainerClass.getDeclaredMethod("toTagCompound");
                 if (!Version.isNBT_UPDATE()){
-                    this.PersistentDataContainer_putAll = CraftPersistentDataContainerClass.getDeclaredMethod("putAll",NBTTagCompoundClass);
+                    this.PersistentDataContainer_putAll = CraftPersistentDataContainerClass.getDeclaredMethod("putAll", NBTTagCompoundClass);
                 }
             }
-
-
 
         }catch(ReflectiveOperationException e){
             e.printStackTrace();
